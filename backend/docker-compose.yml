@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  # 1. Our PostgreSQL Database (The Bouncer)
+  db:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: ticket_user
+      POSTGRES_PASSWORD: supersecretpassword
+      POSTGRES_DB: ticket_db
+    ports:
+      - "5432:5432"
+
+  # 2. Our Redis Cache (The Alarm Clock)
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"

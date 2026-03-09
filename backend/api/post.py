@@ -1,5 +1,10 @@
-from fastapi import APIRouter
+import uuid
+from backend.database import get_db 
+from fastapi import APIRouter, Depends
 from pydantic import BaseModel
+from sqlalchemy.ext.asyncio import AsyncSession 
+
+from backend.models import RequestEvent
 
 # 1. Create the router (the "extension cord")
 router = APIRouter()
@@ -42,12 +47,31 @@ async def create_event(event_name: str = "", event_description: str = "", place_
         return {"message": "Event name and Place ID cannot be empty."}
     
 @router.post("/user/request-event")
-async def request_event(event_name: str = "", event_id = None):
-    if event_name != "" and even_id:
-        return {"message": f"Event '{event_name}' requested successfully!"}
-    else:
-        return {"message": "Event name cannot be empty."}
+async def request_event(event_request: UserEventRequest, db: AsyncSession = Depends(get_db)):
+    new_request_id  = str(uuid.uuid4()) # Generate a unique ID for the new event request
+    new_request = RequestEvent(
+        id=new_request_id,
+        event_name=event_request.event_name,
+        event_description=event_request.event_description,
+        requested_by_user_id=event_request.requested_by_user
+    )
+    db.add(new_request)
+    await db.commit()
+    await db.refresh(new_request)
+    return {
+        "message": f"Event '{new_request.event_name}' pushed to request queue successfully!",
+        "request_id": new_request.id,
+        "status": new_request.status
+    }
+
+                        
     
+    
+    
+
+
+
+
 @router.post("/admin/approve-event")
 async def approve_event(event_name: str = "", event_id : str = ""):
     if event_name != "":

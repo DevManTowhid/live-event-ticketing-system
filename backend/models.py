@@ -25,6 +25,8 @@ class Place(Base):
     venue = relationship("Venue", back_populates="places")
     events = relationship("Event", back_populates="place")
 
+
+
 # 3. EVENT 
 class Event(Base):
     __tablename__ = "events"
@@ -56,3 +58,15 @@ class Seat(Base):
     booking_time = Column(DateTime, nullable=True) 
     
     event = relationship("Event", back_populates="seats")
+
+
+
+class RequestEvent(Base): # This model is for user-submitted event requests that admins can approve or reject
+    __tablename__ = "request_events" 
+
+    id = Column(String, primary_key=True, index=True)
+    event_name = Column(String, nullable=False)
+    event_description = Column(String, nullable=True)
+    place_id = Column(String, ForeignKey("places.id"))
+
+    requested_by_user_id = Column(String, nullable=True) # ID of the user who made the request

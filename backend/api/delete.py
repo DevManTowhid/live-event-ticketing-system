@@ -55,7 +55,7 @@ async def delete_event(
 @router.delete("/admin/reject-request/{request_id}")
 async def reject_request(
     request_id: str, 
-    reason: str, # FastAPI automatically turns this into a URL query parameter!
+    reason: str="", # FastAPI automatically turns this into a URL query parameter!
     db: AsyncSession = Depends(get_db)
 ):
     # 1. Fetch the pending request from the waiting room

@@ -38,8 +38,13 @@ class Event(Base):
     # FIXED: This must be a String because Place.id is a String
     place_id = Column(String, ForeignKey("places.id"))
     
-    place = relationship("Place", back_populates="events")
-    seats = relationship("Seat", back_populates="event")
+
+
+    event_by_user_id = Column(String,ForeignKey("users.id"), nullable=True) # ID of the user who created this event (if it was created by an admin, this can be null)
+
+
+    start_time = Column(DateTime, nullable=True) # When the event starts
+    end_time = Column(DateTime, nullable=True) # When the event ends
 
 # 4. SEAT 
 class Seat(Base):
@@ -64,9 +69,81 @@ class Seat(Base):
 class RequestEvent(Base): # This model is for user-submitted event requests that admins can approve or reject
     __tablename__ = "request_events" 
 
-    id = Column(String, primary_key=True, index=True)
+    event_id = Column(String, primary_key=True, index=True)
     event_name = Column(String, nullable=False)
     event_description = Column(String, nullable=True)
+    
+    # FIXED: This must be a String because Place.id is a String
     place_id = Column(String, ForeignKey("places.id"))
+    
 
-    requested_by_user_id = Column(String, nullable=True) # ID of the user who made the request
+    event_by_user_id = Column(String,ForeignKey("users.id"), nullable=True) # ID of the user who created this event (if it was created by an admin, this can be null)
+
+
+    start_time = Column(DateTime, nullable=True) # When the event starts
+    end_time = Column(DateTime, nullable=True) # When the event ends
+
+
+
+class RejectRequestEvent(Base):
+    __tablename__ = "rejected_events"
+    
+
+    event_id = Column(String, primary_key=True, index=True)
+    event_name = Column(String, nullable=False)
+    event_description = Column(String, nullable=True)
+    
+    # FIXED: This must be a String because Place.id is a String
+    place_id = Column(String, ForeignKey("places.id"))
+    
+
+    event_by_user_id = Column(String,ForeignKey("users.id"), nullable=True) # ID of the user who created this event (if it was created by an admin, this can be null)
+
+
+    start_time = Column(DateTime, nullable=True) # When the event starts
+    end_time = Column(DateTime, nullable=True) # When the event ends
+
+    why_rejected = Column(String, nullable=False)
+    
+
+# class DeleteEvent(Base):
+#     __tablename__ = "deleted_events"
+    
+
+#     event_id = Column(String, primary_key=True, index=True)
+#     event_name = Column(String, nullable=False)
+#     event_description = Column(String, nullable=True)
+    
+#     # FIXED: This must be a String because Place.id is a String
+#     place_id = Column(String, ForeignKey("places.id"))
+    
+
+#     event_by_user_id = Column(String,ForeignKey("users.id"), nullable=True) # ID of the user who created this event (if it was created by an admin, this can be null)
+
+
+#     start_time = Column(DateTime, nullable=True) # When the event starts
+#     end_time = Column(DateTime, nullable=True) # When the event ends
+
+#     reason = Column(String, nullable=False)
+
+
+
+class DeleteRequestEvent(Base): # This model is for logging deleted event REQUESTS (not actual events, but the user-submitted requests that admins can approve or reject)
+    __tablename__ = "deleted_request_events"
+
+    event_id = Column(String, primary_key=True, index=True)
+    event_name = Column(String, nullable=False)
+    event_description = Column(String, nullable=True)
+    
+    # FIXED: This must be a String because Place.id is a String
+    place_id = Column(String, ForeignKey("places.id"))
+    
+
+    event_by_user_id = Column(String,ForeignKey("users.id"), nullable=True) # ID of the user who created this event (if it was created by an admin, this can be null)
+
+
+    start_time = Column(DateTime, nullable=True) # When the event starts
+    end_time = Column(DateTime, nullable=True) # When the event ends
+
+    reason = Column(String, nullable=False)
+    

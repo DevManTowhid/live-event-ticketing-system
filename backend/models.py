@@ -1,6 +1,7 @@
 # models.py
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
+from sqlalchemy.sql import func
 from database import Base # Import the Base from your database.py file
 
 # 1. VENUE
@@ -83,6 +84,8 @@ class RequestEvent(Base): # This model is for user-submitted event requests that
     start_time = Column(DateTime, nullable=True) # When the event starts
     end_time = Column(DateTime, nullable=True) # When the event ends
 
+    requested_at = Column(DateTime(timezone=True), server_default=func.now()) # Timestamp for when the request was submitted, with timezone support
+
 
 
 class RejectRequestEvent(Base):
@@ -104,6 +107,8 @@ class RejectRequestEvent(Base):
     end_time = Column(DateTime, nullable=True) # When the event ends
 
     why_rejected = Column(String, nullable=False)
+
+    rejected_at = Column(DateTime(timezone=True), server_default=func.now()) # Timestamp for when the reject action occurred, with timezone support
     
 
 # class DeleteEvent(Base):
@@ -146,4 +151,8 @@ class DeleteRequestEvent(Base): # This model is for logging deleted event REQUES
     end_time = Column(DateTime, nullable=True) # When the event ends
 
     reason = Column(String, nullable=False)
+
+    deleted_at = Column(DateTime(timezone=True), server_default=func.now()) # Timestamp for when the delete action occurred, with timezone support
+
+
     

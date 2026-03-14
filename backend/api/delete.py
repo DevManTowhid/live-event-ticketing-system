@@ -49,10 +49,50 @@ async def delete_event(
         "reason_logged": audit_log.reason
     }
 
-    # event = result.scalar_one_or_none()
-    # if event is None:
-    #     return {"message": "Event not found."}
-    # await db.delete(event)
-    # await
-    # await db.commit()
-    # return {"message": "Event deleted successfully."}
+
+
+# This endpoint is for admins to reject pending event requests, which moves them from the waiting room to the graveyard with a rejection reason.
+@router.delete("/admin/reject-request/{request_id}")
+async def reject_request(
+    request_id: str, 
+    reason: str, # FastAPI automatically turns this into a URL query parameter!
+    db: AsyncSession = Depends(get_db)
+):
+    # 1. Fetch the pending request from the waiting room
+    query = select(models.RequestEvent).where(models.RequestEvent.id == request_id)
+    result = await db.execute(query)
+    pending_request = result.scalar_one_or_none()
+    
+    # --- SAFETY CHECKS ---
+    if not pending_request:
+        raise HTTPException(status_code=404, detail="Event request not found.")
+
+    
+
+    # 2. Stuff the data into the Graveyard (Copying everything!)
+    rejection_log = models.RejectedRequestEvent(
+        id=str(uuid.uuid4()),
+        original_request_id=pending_request.id,
+        rejection_reason=reason,
+        
+        # Copying the full payload
+        event_name=pending_request.event_name,
+        event_description=pending_request.event_description,
+        requested_by_user=pending_request.requested_by_user,
+        place_id=pending_request.place_id,
+        start_time=pending_request.start_time,
+        end_time=pending_request.end_time
+    )
+    
+    # 3. QUEUE BOTH ACTIONS: Insert into Graveyard, Delete from Waiting Room
+    db.add(rejection_log)
+    await db.delete(pending_request) # The physical destruction
+    
+    # 4. The ACID Transaction (Execute both at the exact same time)
+    await db.commit()
+
+    return {
+        "message": f"Event request '{pending_request.event_name}' has been rejected and archived.",
+        "request_id": pending_request.id,
+        "reason": reason
+    }

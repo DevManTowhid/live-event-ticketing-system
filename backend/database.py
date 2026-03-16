@@ -20,3 +20,10 @@ async_session = sessionmaker(
 # 4. The Base Model
 # This is the master blueprint. All our future database tables will inherit from this.
 Base = declarative_base()
+
+
+# 5. The Dependency (The Database Waiter)
+async def get_db():
+    # 'async with' automatically opens the connection AND safely closes it when done
+    async with async_session() as session:
+        yield session

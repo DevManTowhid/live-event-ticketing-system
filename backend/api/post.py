@@ -43,6 +43,9 @@ class UserRegisterData(BaseModel):
     email: str
     password: str
 
+class UserLoginData(BaseModel):
+    email: str
+    password: str
 
 @router.post("/admin/login")
 async def admin_login(email: str = "", password: str = ""):
@@ -82,7 +85,22 @@ async def user_register(email: str = "", password: str = "", db: AsyncSession = 
     
     return {"message": f"User '{new_user.email}' registered successfully!", "user_id": new_user.user_id}
     
+
+@router.post("/user/login")
+async def user_login(email: str = "", password: str = "", db: AsyncSession = Depends(get_db)):  
+    if email == "" or password == "":
+        raise HTTPException(status_code=400, detail="Email and password are required.")
     
+    query = select(User).where(User.email == email)
+    result = await db.execute(query)
+    user = result.scalar_one_or_none()
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid email or password.")
+    # In a real app, you'd verify the password hash here instead of comparing plain text
+    if password != user.password_hash:
+        raise HTTPException(status_code=401, detail="Invalid email or password.")
+    
+    return {"message": f"User '{user.email}' logged in successfully!", "user_id": user.user_id}
 
 
     
@@ -200,3 +218,5 @@ async def approve_event_request(request_id: str, place_id: str,db: AsyncSession 
         "message": f"Event Request '{pending_request.event_name}' approved and event created successfully!",
         "event_id": new_event.event_id
     }
+
+

@@ -1,8 +1,27 @@
 # models.py
+from datetime import date
+
 from sqlalchemy import Column, Integer, String, Boolean, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from database import Base # Import the Base from your database.py file
+
+
+class Admin(Base):
+    __tablename__ = "admins"
+    
+    admin_id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, unique=True, index=True, nullable=False)
+    password_hash = Column(String, nullable=False) # In a real app, you'd store a hashed password, not plain text!
+
+
+class User(Base):
+    __tablename__ = "users"
+    
+    user_id = Column(Integer, primary_key=True, index=True)
+    email = Column(String, unique=True, index=True, nullable=False)
+    password_hash = Column(String, nullable=False) # In a real app, you'd store a hashed password, not plain text!
+
 
 # 1. VENUE
 class Venue(Base):
@@ -43,9 +62,9 @@ class Event(Base):
 
     event_by_user_id = Column(String,ForeignKey("users.id"), nullable=True) # ID of the user who created this event (if it was created by an admin, this can be null)
 
-
-    start_time = Column(DateTime, nullable=True) # When the event starts
-    end_time = Column(DateTime, nullable=True) # When the event ends
+    Date = Column(DateTime, nullable = False)
+    start_time = Column(DateTime, nullable= False) # When the event starts
+    end_time = Column(DateTime, nullable=False) # When the event ends
 
 # 4. SEAT 
 class Seat(Base):
@@ -88,28 +107,22 @@ class RequestEvent(Base): # This model is for user-submitted event requests that
 
 
 
-class RejectRequestEvent(Base):
-    __tablename__ = "rejected_events"
+class RejectedRequestEvent(Base):
+    __tablename__ = "rejected_request_events"
     
-
-    event_id = Column(String, primary_key=True, index=True)
+    id = Column(String, primary_key=True, index=True)
+    original_request_id = Column(String, nullable=False)
+    rejection_reason = Column(String, nullable=False)  
+    
+    # We must copy EVERYTHING now, because the original row is getting deleted
     event_name = Column(String, nullable=False)
     event_description = Column(String, nullable=True)
+    requested_by_user = Column(String, nullable=True)
+    place_id = Column(String, nullable=True)
+    start_time = Column(DateTime(timezone=True), nullable=True)
+    end_time = Column(DateTime(timezone=True), nullable=True)
     
-    # FIXED: This must be a String because Place.id is a String
-    place_id = Column(String, ForeignKey("places.id"))
-    
-
-    event_by_user_id = Column(String,ForeignKey("users.id"), nullable=True) # ID of the user who created this event (if it was created by an admin, this can be null)
-
-
-    start_time = Column(DateTime, nullable=True) # When the event starts
-    end_time = Column(DateTime, nullable=True) # When the event ends
-
-    why_rejected = Column(String, nullable=False)
-
-    rejected_at = Column(DateTime(timezone=True), server_default=func.now()) # Timestamp for when the reject action occurred, with timezone support
-    
+    rejected_at = Column(DateTime(timezone=True), server_default=func.now())
 
 # class DeleteEvent(Base):
 #     __tablename__ = "deleted_events"
@@ -156,3 +169,24 @@ class DeleteRequestEvent(Base): # This model is for logging deleted event REQUES
 
 
     
+
+class RequestDeleteEvent(Base): # This model is for user-submitted delete requests for existing events (not event requests, but actual events that have already been approved and exist in the system)
+    __tablename__ = "delete_event_requests"
+
+    event_id = Column(String, primary_key=True, index=True)
+    event_name = Column(String, nullable=False)
+    event_description = Column(String, nullable=True)
+    
+    # FIXED: This must be a String because Place.id is a String
+    place_id = Column(String, ForeignKey("places.id"))
+    
+
+    event_by_user_id = Column(String,ForeignKey("users.id"), nullable=True) # ID of the user who created this event (if it was created by an admin, this can be null)
+
+
+    start_time = Column(DateTime, nullable=True) # When the event starts
+    end_time = Column(DateTime, nullable=True) # When the event ends
+
+    reason = Column(String, nullable=False)
+
+    requested_at = Column(DateTime(timezone=True), server_default=func.now()) # Timestamp for when the delete request was submitted, with timezone support

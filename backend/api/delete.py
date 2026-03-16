@@ -1,9 +1,12 @@
+import uuid
+
 from fastapi import APIRouter, HTTPException
 import models 
 from sqlalchemy.ext.asyncio import AsyncSession
 from database import get_db
 from sqlalchemy import select, insert
 from fastapi import Depends
+
 # 1. Create the router (the "extension cord")
 router = APIRouter()
 

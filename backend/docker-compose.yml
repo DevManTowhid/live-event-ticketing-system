@@ -6,10 +6,10 @@ services:
     image: postgres:15
     environment:
       POSTGRES_USER: ticket_user
-      POSTGRES_PASSWORD: supersecretpassword
+      POSTGRES_PASSWORD: admin
       POSTGRES_DB: ticket_db
     ports:
-      - "5432:5432"
+      - "5433:5433"
 
   # 2. Our Redis Cache (The Alarm Clock)
   redis:
